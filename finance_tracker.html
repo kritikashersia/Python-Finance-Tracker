@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Finance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #030712;
+    --bg2: #050d1a;
+    --bg3: #071526;
+    --panel: #071a2f;
+    --panel2: #0a2040;
+    --border: #0f3060;
+    --border2: #1a4a8a;
+    --accent: #1d6ff3;
+    --accent2: #38bdf8;
+    --accent3: #0ea5e9;
+    --text: #e0eeff;
+    --text2: #7bafd4;
+    --text3: #3d6a8a;
+    --green: #22d3a3;
+    --red: #f43f5e;
+    --orange: #f97316;
+    --purple: #a855f7;
+    --yellow: #eab308;
+
+    --cat-food: #38bdf8;
+    --cat-transport: #a855f7;
+    --cat-utilities: #f97316;
+    --cat-shopping: #f43f5e;
+    --cat-health: #22d3a3;
+    --cat-entertainment: #eab308;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(29,111,243,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(29,111,243,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glowing orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; left: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(29,111,243,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: orb1 20s ease-in-out infinite alternate;
+  }
+
+  @keyframes orb1 {
+    0% { transform: translate(0,0); }
+    100% { transform: translate(300px, 200px); }
+  }
+
+  .app { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 16px 60px; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #1d6ff3, #38bdf8);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 24px rgba(29,111,243,0.4);
+  }
+
+  .logo h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+  .logo span { font-size: 12px; color: var(--text2); display: block; font-weight: 400; margin-top: 2px; font-family: 'Space Mono', monospace; }
+
+  .header-badges { display: flex; gap: 8px; }
+  .badge {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text2);
+  }
+  .badge.active { background: rgba(29,111,243,0.15); border-color: var(--accent); color: var(--accent2); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 28px;
+    width: fit-content;
+  }
+
+  .tab {
+    padding: 9px 20px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--panel2); }
+  .tab.active {
+    background: linear-gradient(135deg, rgba(29,111,243,0.3), rgba(56,189,248,0.2));
+    color: var(--accent2);
+    border: 1px solid rgba(29,111,243,0.4);
+    box-shadow: 0 0 16px rgba(29,111,243,0.15);
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent-line, linear-gradient(90deg, var(--accent), var(--accent2)));
+  }
+
+  .stat-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; font-family: 'Space Mono', monospace; }
+  .stat-value { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.03em; }
+  .stat-sub { font-size: 11px; color: var(--text2); margin-top: 4px; font-family: 'Space Mono', monospace; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 28px; }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+    font-family: 'Space Mono', monospace;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  /* ── CATEGORY BREAKDOWN ── */
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+
+  .cat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    transition: border-color 0.2s;
+  }
+  .cat-card:hover { border-color: var(--border2); }
+
+  .cat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .cat-name-row { display: flex; align-items: center; gap: 10px; }
+  .cat-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .cat-name { font-weight: 700; font-size: 14px; }
+  .cat-count { font-size: 11px; color: var(--text3); font-family: 'Space Mono', monospace; }
+  .cat-total { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+
+  .cat-bar-bg { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin: 8px 0; }
+  .cat-bar { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+
+  .cat-stats { display: flex; gap: 16px; margin-top: 8px; }
+  .cat-stat { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--text3); }
+  .cat-stat span { color: var(--text2); }
+
+  /* ── TRANSACTIONS TABLE ── */
+  .tx-filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  input[type="text"], select {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus, select:focus { border-color: var(--accent); }
+  input[type="text"] { min-width: 200px; }
+  select option { background: #071a2f; }
+
+  .tx-table { width: 100%; border-collapse: collapse; }
+  .tx-table th {
+    padding: 10px 16px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    background: var(--bg3);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .tx-table td {
+    padding: 11px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(15,48,96,0.4);
+    vertical-align: middle;
+  }
+  .tx-table tr:last-child td { border-bottom: none; }
+  .tx-table tr:hover td { background: rgba(29,111,243,0.04); }
+
+  .cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .amount-cell { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--accent2); }
+  .date-cell { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text3); }
+  .desc-cell { color: var(--text2); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ── ADD TRANSACTION ── */
+  .add-form {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Space Mono', monospace; }
+  .form-group input, .form-group select { width: 100%; font-size: 13px; padding: 10px 14px; }
+  .form-group input[type="date"] { color-scheme: dark; }
+
+  .btn-add {
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px rgba(29,111,243,0.3);
+    letter-spacing: 0.01em;
+  }
+  .btn-add:hover { transform: translateY(-1px); box-shadow: 0 0 32px rgba(29,111,243,0.5); }
+  .btn-add:active { transform: translateY(0); }
+
+  .btn-delete {
+    background: none;
+    border: 1px solid rgba(244,63,94,0.3);
+    border-radius: 6px;
+    color: rgba(244,63,94,0.6);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 8px;
+    transition: all 0.2s;
+    font-family: 'Space Mono', monospace;
+  }
+  .btn-delete:hover { border-color: var(--red); color: var(--red); background: rgba(244,63,94,0.08); }
+
+  /* ── INSIGHTS ── */
+  .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .insight-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .insight-title { font-size: 13px; font-weight: 700; color: var(--accent2); margin-bottom: 14px; font-family: 'Space Mono', monospace; }
+
+  .insight-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(15,48,96,0.3); }
+  .insight-row:last-child { border-bottom: none; }
+  .insight-key { font-size: 12px; color: var(--text2); }
+  .insight-val { font-size: 13px; font-weight: 700; font-family: 'Space Mono', monospace; color: var(--text); }
+
+  /* ── MINI CHART (CSS bars) ── */
+  .month-chart { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-top: 8px; }
+  .month-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .month-bar { width: 100%; background: linear-gradient(180deg, var(--accent2), var(--accent)); border-radius: 4px 4px 0 0; transition: height 0.6s ease; min-height: 2px; }
+  .month-label { font-size: 9px; font-family: 'Space Mono', monospace; color: var(--text3); }
+
+  /* ── PERCENTILE GAUGE ── */
+  .percentile-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .p-label { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--text3); width: 32px; }
+  .p-bar-bg { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .p-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; }
+  .p-val { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--accent2); width: 60px; text-align: right; }
+
+  /* ── TOP 5 ── */
+  .top-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(15,48,96,0.3); }
+  .top-item:last-child { border-bottom: none; }
+  .top-rank { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--text3); width: 18px; }
+  .top-desc { flex: 1; font-size: 12px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top-amt { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--accent2); font-size: 13px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: linear-gradient(135deg, rgba(34,211,163,0.15), rgba(14,165,233,0.1));
+    border: 1px solid var(--green);
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--green);
+    font-family: 'Space Mono', monospace;
+    z-index: 1000;
+    animation: toastIn 0.3s ease;
+    box-shadow: 0 0 24px rgba(34,211,163,0.2);
+  }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .empty-state { text-align: center; padding: 40px; color: var(--text3); font-family: 'Space Mono', monospace; font-size: 13px; }
+
+  /* CSV upload */
+  .csv-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 14px 18px;
+    background: rgba(29,111,243,0.06);
+    border: 1px dashed rgba(29,111,243,0.3);
+    border-radius: 10px;
+  }
+  .csv-icon { font-size: 20px; }
+  .csv-label { font-size: 12px; color: var(--text2); }
+  .csv-label strong { color: var(--accent2); }
+  .btn-csv {
+    background: var(--panel2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: auto;
+  }
+  .btn-csv:hover { background: rgba(29,111,243,0.15); }
+
+  @media(max-width:600px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .tabs { overflow-x: auto; }
+    header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .monthly-two-col { grid-template-columns: 1fr !important; }
+  }
+
+  /* ── MONTHLY SELECTOR ── */
+  .month-selector-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .month-nav-btn {
+    background: var(--panel);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--accent2);
+    font-size: 20px;
+    width: 36px; height: 36px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-family: 'Space Mono', monospace;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .month-nav-btn:hover { background: rgba(29,111,243,0.15); border-color: var(--accent); }
+
+  .month-display {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    min-width: 160px;
+    text-align: center;
+  }
+
+  .month-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-left: 8px;
+  }
+
+  .month-pill {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 13px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .month-pill:hover { border-color: var(--border2); color: var(--text); }
+  .month-pill.selected {
+    background: rgba(29,111,243,0.2);
+    border-color: var(--accent);
+    color: var(--accent2);
+    box-shadow: 0 0 10px rgba(29,111,243,0.2);
+  }
+
+  /* Monthly cat bar */
+  .mcat-row { margin-bottom: 14px; }
+  .mcat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .mcat-name { font-size: 12px; font-weight: 600; }
+  .mcat-right { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--text2); }
+  .mcat-bar-bg { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .mcat-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+  .empty-month { text-align:center; padding:60px 20px; color:var(--text3); font-family:'Space Mono',monospace; font-size:13px; line-height:2; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">₹</div>
+      <div>
+        <h1>Finance Tracker</h1>
+        <span id="header-sub">Loading…</span>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="badge active" id="badge-total">—</div>
+      <div class="badge" id="badge-count">—</div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab" onclick="switchTab('transactions')">Transactions</button>
+    <button class="tab" onclick="switchTab('add')">+ Add</button>
+    <button class="tab" onclick="switchTab('insights')">Insights</button>
+    <button class="tab" onclick="switchTab('monthly')">📅 Monthly</button>
+  </div>
+
+  <!-- ═══════════ DASHBOARD ═══════════ -->
+  <div id="tab-dashboard">
+    <div class="stats-grid" id="stat-cards"></div>
+
+    <div class="section">
+      <div class="section-title">By Category</div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Monthly Trend</div>
+      <div class="panel" style="padding:24px;">
+        <div id="month-chart-container"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Top 5 Expenses</div>
+      <div class="panel" style="padding:16px 20px;">
+        <div id="top5-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TRANSACTIONS ═══════════ -->
+  <div id="tab-transactions" style="display:none;">
+    <div class="tx-filter-row">
+      <input type="text" id="search-input" placeholder="Search description…" oninput="renderTransactions()" />
+      <select id="filter-cat" onchange="renderTransactions()">
+        <option value="">All Categories</option>
+      </select>
+      <select id="filter-month" onchange="renderTransactions()">
+        <option value="">All Months</option>
+      </select>
+      <select id="sort-by" onchange="renderTransactions()">
+        <option value="date-desc">Date ↓</option>
+        <option value="date-asc">Date ↑</option>
+        <option value="amt-desc">Amount ↓</option>
+        <option value="amt-asc">Amount ↑</option>
+      </select>
+    </div>
+    <div class="panel">
+      <table class="tx-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tx-body"></tbody>
+      </table>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:10px;font-family:'Space Mono',monospace;" id="tx-count-label"></div>
+  </div>
+
+  <!-- ═══════════ ADD TRANSACTION ═══════════ -->
+  <div id="tab-add" style="display:none;">
+    <div class="csv-section">
+      <div class="csv-icon">📂</div>
+      <div class="csv-label">
+        <strong>Import CSV</strong> — Date, Category, Amount, Description format
+      </div>
+      <label class="btn-csv">
+        Choose CSV
+        <input type="file" accept=".csv" style="display:none" onchange="importCSV(event)" />
+      </label>
+    </div>
+    <div class="add-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" id="inp-date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select id="inp-cat">
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Utilities</option>
+            <option>Shopping</option>
+            <option>Health</option>
+            <option>Entertainment</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (₹)</label>
+          <input type="text" id="inp-amt" placeholder="e.g. 450" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input type="text" id="inp-desc" placeholder="e.g. Grocery shopping" />
+        </div>
+      </div>
+      <button class="btn-add" onclick="addTransaction()">Add Transaction →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ INSIGHTS ═══════════ -->
+  <div id="tab-insights" style="display:none;">
+    <div class="insights-grid">
+      <div class="insight-card">
+        <div class="insight-title">// Percentile Distribution</div>
+        <div id="percentile-section"></div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-title">// Spending Tiers</div>
+        <div id="tiers-section"></div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-title">// Monthly Summary</div>
+        <div id="monthly-section"></div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-title">// Extreme Transactions</div>
+        <div id="extreme-section"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+  <!-- ═══════════ MONTHLY REPORT ═══════════ -->
+  <div id="tab-monthly" style="display:none;">
+
+    <!-- Month Selector -->
+    <div class="month-selector-bar">
+      <button class="month-nav-btn" onclick="shiftMonth(-1)">‹</button>
+      <div class="month-display" id="month-display-label">— Select Month —</div>
+      <button class="month-nav-btn" onclick="shiftMonth(1)">›</button>
+      <div class="month-pills" id="month-pills"></div>
+    </div>
+
+    <!-- Monthly KPI strip -->
+    <div class="stats-grid" id="monthly-stat-cards" style="margin-bottom:24px;"></div>
+
+    <!-- Category donut + list -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;" class="monthly-two-col">
+      <div class="panel" style="padding:20px;">
+        <div class="section-title" style="margin-bottom:16px;">Category Breakdown</div>
+        <div id="monthly-cat-bars"></div>
+      </div>
+      <div class="panel" style="padding:20px;">
+        <div class="section-title" style="margin-bottom:16px;">Spending Tiers</div>
+        <div id="monthly-tiers"></div>
+        <div style="margin-top:20px;">
+          <div class="section-title" style="margin-bottom:12px;">Top Expense</div>
+          <div id="monthly-top"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions for that month -->
+    <div class="section-title">All Transactions</div>
+    <div class="panel">
+      <table class="tx-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody id="monthly-tx-body"></tbody>
+      </table>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:10px;font-family:'Space Mono',monospace;" id="monthly-tx-label"></div>
+  </div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const CAT_COLORS = {
+  Food: '#38bdf8',
+  Transport: '#a855f7',
+  Utilities: '#f97316',
+  Shopping: '#f43f5e',
+  Health: '#22d3a3',
+  Entertainment: '#eab308',
+  Other: '#6b7280',
+};
+
+const SEED_DATA = [
+  {date:'2026-01-02',cat:'Food',amt:450,desc:'Grocery shopping at supermarket'},
+  {date:'2026-01-03',cat:'Transport',amt:150,desc:'Uber ride to office'},
+  {date:'2026-01-05',cat:'Utilities',amt:1200,desc:'Monthly electricity bill'},
+  {date:'2026-01-06',cat:'Food',amt:320,desc:'Restaurant dinner with friends'},
+  {date:'2026-01-08',cat:'Entertainment',amt:500,desc:'Movie tickets and snacks'},
+  {date:'2026-01-09',cat:'Shopping',amt:2500,desc:'New running shoes'},
+  {date:'2026-01-11',cat:'Food',amt:280,desc:'Weekly vegetables and fruits'},
+  {date:'2026-01-13',cat:'Health',amt:800,desc:'Doctor consultation fee'},
+  {date:'2026-01-14',cat:'Transport',amt:200,desc:'Auto rickshaw rides'},
+  {date:'2026-01-16',cat:'Utilities',amt:600,desc:'Mobile phone recharge'},
+  {date:'2026-01-18',cat:'Food',amt:400,desc:'Lunch at office canteen'},
+  {date:'2026-01-19',cat:'Entertainment',amt:350,desc:'Netflix subscription'},
+  {date:'2026-01-21',cat:'Shopping',amt:1800,desc:'Winter jacket purchase'},
+  {date:'2026-01-22',cat:'Transport',amt:180,desc:'Metro card recharge'},
+  {date:'2026-01-24',cat:'Food',amt:950,desc:'Birthday party dinner'},
+  {date:'2026-01-25',cat:'Utilities',amt:1100,desc:'Water bill payment'},
+  {date:'2026-01-27',cat:'Health',amt:500,desc:'Pharmacy medicines'},
+  {date:'2026-01-28',cat:'Food',amt:300,desc:'Street food and snacks'},
+  {date:'2026-01-30',cat:'Transport',amt:250,desc:'Cab to railway station'},
+  {date:'2026-01-31',cat:'Entertainment',amt:400,desc:'Concert tickets'},
+  {date:'2026-02-02',cat:'Food',amt:520,desc:'Monthly grocery restock'},
+  {date:'2026-02-03',cat:'Shopping',amt:3200,desc:'New backpack and accessories'},
+  {date:'2026-02-05',cat:'Transport',amt:170,desc:'Bus pass renewal'},
+  {date:'2026-02-07',cat:'Utilities',amt:950,desc:'Internet bill payment'},
+  {date:'2026-02-08',cat:'Health',amt:1500,desc:'Annual health checkup'},
+  {date:'2026-02-10',cat:'Food',amt:380,desc:'Dinner at dhaba'},
+  {date:'2026-02-12',cat:'Entertainment',amt:600,desc:'Amusement park entry'},
+  {date:'2026-02-13',cat:'Transport',amt:220,desc:'Ola ride to mall'},
+  {date:'2026-02-14',cat:'Food',amt:1200,desc:"Valentine's Day dinner"},
+  {date:'2026-02-16',cat:'Shopping',amt:4500,desc:'New smartphone case and earphones'},
+  {date:'2026-02-18',cat:'Utilities',amt:1100,desc:'Electricity bill payment'},
+  {date:'2026-02-19',cat:'Health',amt:350,desc:'Eye checkup'},
+  {date:'2026-02-21',cat:'Food',amt:290,desc:'Fruit and juice shop'},
+  {date:'2026-02-23',cat:'Transport',amt:300,desc:'Airport drop cab'},
+  {date:'2026-02-25',cat:'Entertainment',amt:250,desc:'Book purchase online'},
+  {date:'2026-02-27',cat:'Food',amt:410,desc:'Pizza delivery order'},
+  {date:'2026-02-28',cat:'Shopping',amt:1600,desc:'Clothing sale purchase'},
+  {date:'2026-03-01',cat:'Utilities',amt:700,desc:'Gas cylinder refill'},
+  {date:'2026-03-03',cat:'Food',amt:340,desc:'Breakfast at cafe'},
+  {date:'2026-03-05',cat:'Transport',amt:190,desc:'Auto to market'},
+  {date:'2026-03-07',cat:'Health',amt:900,desc:'Dentist appointment'},
+  {date:'2026-03-08',cat:'Entertainment',amt:450,desc:'Streaming service annual plan'},
+  {date:'2026-03-10',cat:'Food',amt:560,desc:'Weekly grocery shopping'},
+  {date:'2026-03-12',cat:'Shopping',amt:2100,desc:'Sports equipment'},
+  {date:'2026-03-14',cat:'Transport',amt:280,desc:'Train tickets'},
+  {date:'2026-03-16',cat:'Utilities',amt:850,desc:'DTH recharge'},
+  {date:'2026-03-18',cat:'Food',amt:370,desc:'Biryani takeaway'},
+  {date:'2026-03-20',cat:'Health',amt:650,desc:'Blood test and reports'},
+  {date:'2026-03-22',cat:'Entertainment',amt:300,desc:'Gaming subscription'},
+  {date:'2026-03-24',cat:'Food',amt:480,desc:'Family dinner outing'},
+];
+
+let transactions = JSON.parse(localStorage.getItem('ft_transactions') || 'null') || SEED_DATA.map((d,i)=>({...d,id:i+1}));
+let nextId = Math.max(...transactions.map(t=>t.id||0)) + 1;
+
+function save() { localStorage.setItem('ft_transactions', JSON.stringify(transactions)); }
+
+// ── UTILS ─────────────────────────────────────────────
+const fmt = n => '₹' + n.toLocaleString('en-IN', {maximumFractionDigits:0});
+const fmtFull = n => '₹' + n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+function percentile(arr, p) {
+  const s = [...arr].sort((a,b)=>a-b);
+  const idx = (p/100)*(s.length-1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  return s[lo] + (s[hi]-s[lo])*(idx-lo);
+}
+
+function monthName(m) {
+  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1];
+}
+
+function catPill(cat) {
+  const c = CAT_COLORS[cat] || '#6b7280';
+  return `<span class="cat-pill" style="background:${c}22;color:${c};border:1px solid ${c}44">
+    <span style="width:5px;height:5px;background:${c};border-radius:50%;display:inline-block"></span>${cat}
+  </span>`;
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────
+function switchTab(tab) {
+  ['dashboard','transactions','add','insights','monthly'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    const names = ['dashboard','transactions','add','insights','monthly'];
+    el.classList.toggle('active', names[i]===tab);
+  });
+  if (tab==='transactions') renderTransactions();
+  if (tab==='insights') renderInsights();
+  if (tab==='monthly') renderMonthlyReport();
+}
+
+// ── RENDER DASHBOARD ──────────────────────────────────
+function renderDashboard() {
+  const amts = transactions.map(t=>t.amt);
+  const total = amts.reduce((a,b)=>a+b, 0);
+  const avg = total / amts.length;
+  const max = Math.max(...amts);
+  const min = Math.min(...amts);
+  const med = percentile(amts, 50);
+  const std = Math.sqrt(amts.reduce((a,b)=>a+(b-avg)**2,0)/amts.length);
+
+  document.getElementById('header-sub').textContent = `${transactions.length} records · Jan–Mar 2026`;
+  document.getElementById('badge-total').textContent = fmt(total);
+  document.getElementById('badge-count').textContent = transactions.length + ' txns';
+
+  // Stat cards
+  const cards = [
+    {label:'Total Spent', val: fmtFull(total), sub:'All transactions', line:'linear-gradient(90deg,#1d6ff3,#38bdf8)'},
+    {label:'Average', val: fmtFull(avg), sub:'Per transaction', line:'linear-gradient(90deg,#a855f7,#38bdf8)'},
+    {label:'Highest', val: fmt(max), sub:'Single transaction', line:'linear-gradient(90deg,#f43f5e,#f97316)'},
+    {label:'Median', val: fmt(med), sub:'50th percentile', line:'linear-gradient(90deg,#22d3a3,#38bdf8)'},
+    {label:'Std Dev', val: fmt(std), sub:'Spending spread', line:'linear-gradient(90deg,#eab308,#f97316)'},
+    {label:'Records', val: transactions.length, sub:'Total entries', line:'linear-gradient(90deg,#1d6ff3,#a855f7)'},
+  ];
+
+  document.getElementById('stat-cards').innerHTML = cards.map(c=>`
+    <div class="stat-card" style="--accent-line:${c.line}">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.val}</div>
+      <div class="stat-sub">${c.sub}</div>
+    </div>
+  `).join('');
+
+  // Category breakdown
+  const cats = {};
+  transactions.forEach(t => {
+    if (!cats[t.cat]) cats[t.cat] = {total:0,count:0,max:0,amts:[]};
+    cats[t.cat].total += t.amt;
+    cats[t.cat].count++;
+    cats[t.cat].max = Math.max(cats[t.cat].max, t.amt);
+    cats[t.cat].amts.push(t.amt);
+  });
+  const maxCatTotal = Math.max(...Object.values(cats).map(c=>c.total));
+
+  document.getElementById('cat-grid').innerHTML = Object.entries(cats)
+    .sort((a,b)=>b[1].total-a[1].total)
+    .map(([cat,data]) => {
+      const color = CAT_COLORS[cat] || '#6b7280';
+      const pct = (data.total/maxCatTotal*100).toFixed(0);
+      const avg2 = (data.total/data.count).toFixed(0);
+      return `
+        <div class="cat-card">
+          <div class="cat-header">
+            <div class="cat-name-row">
+              <div class="cat-dot" style="background:${color}"></div>
+              <div class="cat-name" style="color:${color}">${cat}</div>
+            </div>
+            <div class="cat-count">${data.count} txns</div>
+          </div>
+          <div class="cat-total">${fmt(data.total)}</div>
+          <div class="cat-bar-bg"><div class="cat-bar" style="width:${pct}%;background:${color}"></div></div>
+          <div class="cat-stats">
+            <div class="cat-stat">avg <span>${fmt(avg2)}</span></div>
+            <div class="cat-stat">max <span>${fmt(data.max)}</span></div>
+            <div class="cat-stat">share <span>${pct}%</span></div>
+          </div>
+        </div>`;
+    }).join('');
+
+  // Monthly trend
+  const months = {};
+  transactions.forEach(t => {
+    const m = t.date.split('-')[1];
+    if (!months[m]) months[m] = 0;
+    months[m] += t.amt;
+  });
+  const maxM = Math.max(...Object.values(months));
+  const monthChartHTML = Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0])).map(([m,v])=>{
+    const h = (v/maxM*72).toFixed(0);
+    return `<div class="month-bar-wrap">
+      <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--accent2);margin-bottom:4px">${fmt(v)}</div>
+      <div class="month-bar" style="height:${h}px"></div>
+      <div class="month-label">${monthName(parseInt(m))}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('month-chart-container').innerHTML = `<div class="month-chart">${monthChartHTML}</div>`;
+
+  // Top 5
+  const top5 = [...transactions].sort((a,b)=>b.amt-a.amt).slice(0,5);
+  document.getElementById('top5-list').innerHTML = top5.map((t,i)=>`
+    <div class="top-item">
+      <div class="top-rank">#${i+1}</div>
+      <div style="width:8px;height:8px;border-radius:50%;background:${CAT_COLORS[t.cat]||'#6b7280'};flex-shrink:0"></div>
+      <div class="top-desc">${t.desc}</div>
+      <div class="top-amt">${fmt(t.amt)}</div>
+    </div>
+  `).join('');
+}
+
+// ── RENDER TRANSACTIONS ───────────────────────────────
+function renderTransactions() {
+  // populate filters once
+  const catSel = document.getElementById('filter-cat');
+  const monthSel = document.getElementById('filter-month');
+  if (catSel.options.length === 1) {
+    const cats = [...new Set(transactions.map(t=>t.cat))].sort();
+    cats.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; catSel.appendChild(o); });
+    const months = [...new Set(transactions.map(t=>t.date.substring(0,7)))].sort();
+    months.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=monthName(parseInt(m.split('-')[1]))+' '+m.split('-')[0]; monthSel.appendChild(o); });
+  }
+
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const filterCat = catSel.value;
+  const filterMonth = monthSel.value;
+  const sortBy = document.getElementById('sort-by').value;
+
+  let filtered = transactions.filter(t =>
+    (!q || t.desc.toLowerCase().includes(q) || t.cat.toLowerCase().includes(q)) &&
+    (!filterCat || t.cat===filterCat) &&
+    (!filterMonth || t.date.startsWith(filterMonth))
+  );
+
+  filtered.sort((a,b) => {
+    if (sortBy==='date-desc') return b.date.localeCompare(a.date);
+    if (sortBy==='date-asc')  return a.date.localeCompare(b.date);
+    if (sortBy==='amt-desc')  return b.amt-a.amt;
+    if (sortBy==='amt-asc')   return a.amt-b.amt;
+  });
+
+  const total = filtered.reduce((a,t)=>a+t.amt,0);
+  document.getElementById('tx-count-label').textContent = `Showing ${filtered.length} transactions · Total: ${fmtFull(total)}`;
+
+  document.getElementById('tx-body').innerHTML = filtered.length === 0
+    ? `<tr><td colspan="5"><div class="empty-state">No transactions found</div></td></tr>`
+    : filtered.map(t => `
+      <tr>
+        <td class="date-cell">${t.date}</td>
+        <td>${catPill(t.cat)}</td>
+        <td class="desc-cell">${t.desc}</td>
+        <td class="amount-cell">${fmt(t.amt)}</td>
+        <td><button class="btn-delete" onclick="deleteTransaction(${t.id})">✕</button></td>
+      </tr>`).join('');
+}
+
+// ── DELETE ────────────────────────────────────────────
+function deleteTransaction(id) {
+  transactions = transactions.filter(t => t.id !== id);
+  save();
+  renderDashboard();
+  renderTransactions();
+  showToast('Transaction deleted');
+}
+
+// ── ADD TRANSACTION ───────────────────────────────────
+function addTransaction() {
+  const date = document.getElementById('inp-date').value;
+  const cat  = document.getElementById('inp-cat').value;
+  const amt  = parseFloat(document.getElementById('inp-amt').value);
+  const desc = document.getElementById('inp-desc').value.trim();
+
+  if (!date) { alert('Please pick a date'); return; }
+  if (!amt || isNaN(amt) || amt <= 0) { alert('Enter a valid amount'); return; }
+  if (!desc) { alert('Please enter a description'); return; }
+
+  transactions.push({ id: nextId++, date, cat, amt, desc });
+  save();
+  renderDashboard();
+
+  document.getElementById('inp-amt').value = '';
+  document.getElementById('inp-desc').value = '';
+  showToast('Transaction added ✓');
+}
+
+// ── IMPORT CSV ────────────────────────────────────────
+function importCSV(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const lines = ev.target.result.split('\n').filter(l=>l.trim());
+    let added = 0;
+    lines.forEach((line, i) => {
+      if (i===0 && line.toLowerCase().includes('date')) return; // skip header
+      const parts = line.split(',');
+      if (parts.length < 3) return;
+      // Parse m/d/yyyy or yyyy-mm-dd
+      let dateStr = parts[0].trim();
+      const slashMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (slashMatch) dateStr = `${slashMatch[3]}-${slashMatch[1].padStart(2,'0')}-${slashMatch[2].padStart(2,'0')}`;
+      const amt = parseFloat(parts[2]);
+      const cat = parts[1]?.trim() || 'Other';
+      const desc = parts.slice(3).join(',').trim().replace(/^"|"$/g,'') || 'Imported';
+      if (!isNaN(amt) && dateStr.match(/\d{4}-\d{2}-\d{2}/)) {
+        transactions.push({ id: nextId++, date: dateStr, cat, amt, desc });
+        added++;
+      }
+    });
+    save();
+    renderDashboard();
+    showToast(`Imported ${added} transactions ✓`);
+  };
+  reader.readAsText(file);
+}
+
+// ── RENDER INSIGHTS ───────────────────────────────────
+function renderInsights() {
+  const amts = transactions.map(t=>t.amt).sort((a,b)=>a-b);
+  const maxAmt = Math.max(...amts);
+
+  // Percentiles
+  const ps = [25,50,75,90];
+  document.getElementById('percentile-section').innerHTML = ps.map(p => {
+    const val = percentile(amts,p);
+    const w = (val/maxAmt*100).toFixed(0);
+    return `<div class="percentile-row">
+      <div class="p-label">P${p}</div>
+      <div class="p-bar-bg"><div class="p-bar" style="width:${w}%"></div></div>
+      <div class="p-val">${fmt(val)}</div>
+    </div>`;
+  }).join('') + `<div style="font-size:11px;color:var(--text3);margin-top:12px;font-family:'Space Mono',monospace;line-height:1.6">
+    90% of transactions are below ${fmt(percentile(amts,90))}
+  </div>`;
+
+  // Tiers
+  const low  = amts.filter(a=>a<500);
+  const mid  = amts.filter(a=>a>=500&&a<1000);
+  const high = amts.filter(a=>a>=1000);
+  const tiers = [
+    {label:'Low  < ₹500', count:low.length, total:low.reduce((a,b)=>a+b,0), color:'var(--green)'},
+    {label:'Mid  ₹500–999', count:mid.length, total:mid.reduce((a,b)=>a+b,0), color:'var(--accent2)'},
+    {label:'High ≥ ₹1000', count:high.length, total:high.reduce((a,b)=>a+b,0), color:'var(--red)'},
+  ];
+  document.getElementById('tiers-section').innerHTML = tiers.map(t=>`
+    <div class="insight-row">
+      <div class="insight-key" style="color:${t.color}">${t.label}</div>
+      <div style="text-align:right">
+        <div class="insight-val">${fmt(t.total)}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">${t.count} txns</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Monthly
+  const months = {};
+  transactions.forEach(t => {
+    const m = t.date.substring(0,7);
+    if (!months[m]) months[m]={total:0,count:0};
+    months[m].total += t.amt; months[m].count++;
+  });
+  document.getElementById('monthly-section').innerHTML = Object.entries(months)
+    .sort((a,b)=>a[0].localeCompare(b[0]))
+    .map(([m,d])=>`
+      <div class="insight-row">
+        <div class="insight-key">${monthName(parseInt(m.split('-')[1]))} ${m.split('-')[0]}</div>
+        <div style="text-align:right">
+          <div class="insight-val">${fmt(d.total)}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">${d.count} txns · avg ${fmt(d.total/d.count)}</div>
+        </div>
+      </div>`).join('');
+
+  // Extremes
+  const sorted = [...transactions].sort((a,b)=>b.amt-a.amt);
+  const top = sorted[0], bot = sorted[sorted.length-1];
+  document.getElementById('extreme-section').innerHTML = `
+    <div class="insight-row">
+      <div class="insight-key">Highest</div>
+      <div style="text-align:right">
+        <div class="insight-val" style="color:var(--red)">${fmt(top.amt)}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">${top.desc}</div>
+      </div>
+    </div>
+    <div class="insight-row">
+      <div class="insight-key">Lowest</div>
+      <div style="text-align:right">
+        <div class="insight-val" style="color:var(--green)">${fmt(bot.amt)}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">${bot.desc}</div>
+      </div>
+    </div>
+    <div class="insight-row">
+      <div class="insight-key">Most spent on</div>
+      <div style="text-align:right">
+        <div class="insight-val">${Object.entries(
+          transactions.reduce((a,t)=>{a[t.cat]=(a[t.cat]||0)+t.amt;return a;},{}))
+          .sort((a,b)=>b[1]-a[1])[0][0]}</div>
+      </div>
+    </div>
+    <div class="insight-row">
+      <div class="insight-key">Avg per day</div>
+      <div style="text-align:right">
+        <div class="insight-val">${fmt(transactions.reduce((a,t)=>a+t.amt,0)/
+          (new Set(transactions.map(t=>t.date)).size))}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ── MONTHLY REPORT ────────────────────────────────────
+let selectedMonth = null; // 'YYYY-MM'
+
+function getAvailableMonths() {
+  return [...new Set(transactions.map(t=>t.date.substring(0,7)))].sort();
+}
+
+function renderMonthlyReport() {
+  const avail = getAvailableMonths();
+  if (!selectedMonth || !avail.includes(selectedMonth)) {
+    selectedMonth = avail[avail.length - 1] || null;
+  }
+
+  // Pills
+  document.getElementById('month-pills').innerHTML = avail.map(m => `
+    <div class="month-pill ${m===selectedMonth?'selected':''}" onclick="selectMonth('${m}')">
+      ${monthName(parseInt(m.split('-')[1]))} ${m.split('-')[0]}
+    </div>
+  `).join('');
+
+  if (!selectedMonth) {
+    document.getElementById('month-display-label').textContent = 'No Data';
+    document.getElementById('monthly-stat-cards').innerHTML = `<div class="empty-month">No transactions yet.<br>Add some in the + Add tab.</div>`;
+    return;
+  }
+
+  const [yr, mo] = selectedMonth.split('-');
+  document.getElementById('month-display-label').textContent = `${monthName(parseInt(mo))} ${yr}`;
+
+  const txns = transactions.filter(t => t.date.startsWith(selectedMonth));
+  const amts = txns.map(t=>t.amt);
+  const total = amts.reduce((a,b)=>a+b,0);
+  const avg   = amts.length ? total/amts.length : 0;
+  const max   = amts.length ? Math.max(...amts) : 0;
+  const min   = amts.length ? Math.min(...amts) : 0;
+
+  // KPI strip
+  const allTotal = transactions.filter(t=>t.date.startsWith(selectedMonth.substring(0,4))).reduce((a,t)=>a+t.amt,0);
+  const share = allTotal ? (total/allTotal*100).toFixed(0) : 0;
+  const kpis = [
+    {label:'Month Total', val:fmtFull(total), sub:`${txns.length} transactions`, line:'linear-gradient(90deg,#1d6ff3,#38bdf8)'},
+    {label:'Daily Average', val:fmt(total/new Date(yr,mo,0).getDate()), sub:'Per calendar day', line:'linear-gradient(90deg,#a855f7,#38bdf8)'},
+    {label:'Highest Spend', val:fmt(max), sub:'Single transaction', line:'linear-gradient(90deg,#f43f5e,#f97316)'},
+    {label:'Avg / Txn', val:fmt(avg), sub:'Per transaction', line:'linear-gradient(90deg,#22d3a3,#38bdf8)'},
+    {label:'Yr Share', val:share+'%', sub:'Of annual spend', line:'linear-gradient(90deg,#eab308,#f97316)'},
+  ];
+  document.getElementById('monthly-stat-cards').innerHTML = kpis.map(c=>`
+    <div class="stat-card" style="--accent-line:${c.line}">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.val}</div>
+      <div class="stat-sub">${c.sub}</div>
+    </div>
+  `).join('');
+
+  // Category bars
+  const cats = {};
+  txns.forEach(t => {
+    if (!cats[t.cat]) cats[t.cat]={total:0,count:0};
+    cats[t.cat].total+=t.amt; cats[t.cat].count++;
+  });
+  const maxCat = Math.max(...Object.values(cats).map(c=>c.total), 1);
+  document.getElementById('monthly-cat-bars').innerHTML = Object.entries(cats)
+    .sort((a,b)=>b[1].total-a[1].total)
+    .map(([cat,d])=>{
+      const color = CAT_COLORS[cat]||'#6b7280';
+      const pct = (d.total/maxCat*100).toFixed(0);
+      const share2 = total ? (d.total/total*100).toFixed(0) : 0;
+      return `<div class="mcat-row">
+        <div class="mcat-top">
+          <div class="mcat-name" style="color:${color}">${cat}</div>
+          <div class="mcat-right">${fmt(d.total)} · ${share2}% · ${d.count}×</div>
+        </div>
+        <div class="mcat-bar-bg"><div class="mcat-bar" style="width:${pct}%;background:${color}"></div></div>
+      </div>`;
+    }).join('') || '<div class="empty-month">No data</div>';
+
+  // Tiers
+  const low  = amts.filter(a=>a<500);
+  const mid  = amts.filter(a=>a>=500&&a<1000);
+  const high = amts.filter(a=>a>=1000);
+  const tierData = [
+    {label:'Low < ₹500', count:low.length, total:low.reduce((a,b)=>a+b,0), color:'var(--green)'},
+    {label:'Mid ₹500–999', count:mid.length, total:mid.reduce((a,b)=>a+b,0), color:'var(--accent2)'},
+    {label:'High ≥ ₹1000', count:high.length, total:high.reduce((a,b)=>a+b,0), color:'var(--red)'},
+  ];
+  document.getElementById('monthly-tiers').innerHTML = tierData.map(t=>`
+    <div class="insight-row">
+      <div class="insight-key" style="color:${t.color}">${t.label}</div>
+      <div style="text-align:right">
+        <div class="insight-val">${fmt(t.total)}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">${t.count} txns</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Top expense
+  const topTx = txns.sort((a,b)=>b.amt-a.amt)[0];
+  document.getElementById('monthly-top').innerHTML = topTx ? `
+    <div class="top-item" style="padding:10px 0">
+      <div style="width:8px;height:8px;border-radius:50%;background:${CAT_COLORS[topTx.cat]||'#6b7280'};flex-shrink:0"></div>
+      <div class="top-desc" style="font-size:13px">${topTx.desc}</div>
+      <div class="top-amt" style="font-size:15px">${fmt(topTx.amt)}</div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:4px">${topTx.date} · ${topTx.cat}</div>
+  ` : '';
+
+  // Transaction list
+  const sorted = [...txns].sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('monthly-tx-label').textContent = `${sorted.length} transactions · Total ${fmtFull(total)}`;
+  document.getElementById('monthly-tx-body').innerHTML = sorted.length === 0
+    ? `<tr><td colspan="4"><div class="empty-state">No transactions this month</div></td></tr>`
+    : sorted.map(t=>`
+      <tr>
+        <td class="date-cell">${t.date}</td>
+        <td>${catPill(t.cat)}</td>
+        <td class="desc-cell">${t.desc}</td>
+        <td class="amount-cell">${fmt(t.amt)}</td>
+      </tr>`).join('');
+}
+
+function selectMonth(m) {
+  selectedMonth = m;
+  renderMonthlyReport();
+}
+
+function shiftMonth(dir) {
+  const avail = getAvailableMonths();
+  if (!avail.length) return;
+  let idx = selectedMonth ? avail.indexOf(selectedMonth) : avail.length-1;
+  idx = Math.max(0, Math.min(avail.length-1, idx+dir));
+  selectedMonth = avail[idx];
+  renderMonthlyReport();
+}
+
+// ── TOAST ─────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2800);
+}
+
+// ── INIT ──────────────────────────────────────────────
+// Set today's date as default
+document.getElementById('inp-date').value = new Date().toISOString().split('T')[0];
+renderDashboard();
+</script>
+</body>
+</html>
